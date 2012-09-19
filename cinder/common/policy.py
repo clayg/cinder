@@ -193,7 +193,11 @@ class Brain(object):
         """
 
         # TODO(termie): do dict inspection via dot syntax
-        match = match % target_dict
+        try:
+            match = match % target_dict
+        except KeyError:
+            # target doesn't define the generic keys to support this match
+            return False
         key, value = match.split(':', 1)
         if key in cred_dict:
             return value == cred_dict[key]

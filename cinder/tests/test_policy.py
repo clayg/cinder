@@ -36,8 +36,9 @@ FLAGS = flags.FLAGS
 class PolicyFileTestCase(test.TestCase):
     def setUp(self):
         super(PolicyFileTestCase, self).setUp()
-        policy.reset()
+        # since is_admin is defined by policy, create context before reset
         self.context = context.RequestContext('fake', 'fake')
+        policy.reset()
         self.target = {}
 
     def tearDown(self):
@@ -187,3 +188,40 @@ class DefaultPolicyTestCase(test.TestCase):
         self._set_brain("default_noexist")
         self.assertRaises(exception.PolicyNotAuthorized, policy.enforce,
                 self.context, "example:noexist", {})
+
+
+class ContextIsAdminPolicyTestCase(test.TestCase):
+
+    def setUp(self):
+        super(ContextIsAdminPolicyTestCase, self).setUp()
+        policy.reset()
+
+    def test_default_admin_role_is_admin(self):
+        ctx = context.RequestContext('fake', 'fake', roles=['admin'])
+        self.assert_(ctx.is_admin)
+
+    def test_custom_admin_role_is_admin(self):
+        ctx = context.RequestContext('fake', 'fake', roles=['johnny-admin'])
+        self.assertFalse(ctx.is_admin)
+        # define explict rules for context_is_admin
+        rules = {
+            'context_is_admin': [["role:administrator"], ["role:johnny-admin"]]
+        }
+        brain = cinder.common.policy.Brain(rules)
+        cinder.common.policy.set_brain(brain)
+        ctx = context.RequestContext('fake', 'fake', roles=['johnny-admin'])
+        self.assert_(ctx.is_admin)
+        ctx = context.RequestContext('fake', 'fake', roles=['administrator'])
+        self.assert_(ctx.is_admin)
+
+    def test_context_is_admin_undefined(self):
+        rules = {
+            "admin_or_owner":  [["role:admin"], ["project_id:%(project_id)s"]],
+            "default": [["rule:admin_or_owner"]],
+        }
+        brain = cinder.common.policy.Brain(rules)
+        cinder.common.policy.set_brain(brain)
+        ctx = context.RequestContext('fake', 'fake')
+        self.assertFalse(ctx.is_admin)
+        ctx = context.RequestContext('fake', 'fake', roles=['admin'])
+        self.assert_(ctx.is_admin)
