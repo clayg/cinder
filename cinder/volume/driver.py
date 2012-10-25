@@ -242,7 +242,7 @@ class VolumeDriver(object):
         """Allow connection to connector and return connection info."""
         raise NotImplementedError()
 
-    def terminate_connection(self, volume, connector):
+    def terminate_connection(self, volume, connector, force=False, **kwargs):
         """Disallow connection from connector"""
         raise NotImplementedError()
 
@@ -539,7 +539,7 @@ class ISCSIDriver(VolumeDriver):
             'data': iscsi_properties
         }
 
-    def terminate_connection(self, volume, connector):
+    def terminate_connection(self, volume, connector, **kwargs):
         pass
 
     def copy_image_to_volume(self, context, volume, image_service, image_id):
@@ -573,7 +573,7 @@ class FakeISCSIDriver(ISCSIDriver):
             'data': {}
         }
 
-    def terminate_connection(self, volume, connector):
+    def terminate_connection(self, volume, connector, **kwargs):
         pass
 
     @staticmethod
@@ -703,7 +703,7 @@ class RBDDriver(VolumeDriver):
             }
         }
 
-    def terminate_connection(self, volume, connector):
+    def terminate_connection(self, volume, connector, **kwargs):
         pass
 
     def _parse_location(self, location):
@@ -842,7 +842,7 @@ class SheepdogDriver(VolumeDriver):
             }
         }
 
-    def terminate_connection(self, volume, connector):
+    def terminate_connection(self, volume, connector, **kwargs):
         pass
 
 
@@ -874,7 +874,7 @@ class LoggingVolumeDriver(VolumeDriver):
     def initialize_connection(self, volume, connector):
         self.log_action('initialize_connection', volume)
 
-    def terminate_connection(self, volume, connector):
+    def terminate_connection(self, volume, connector, **kwargs):
         self.log_action('terminate_connection', volume)
 
     _LOGS = []
