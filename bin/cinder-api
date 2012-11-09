@@ -20,7 +20,12 @@
 """Starter script for Cinder OS API."""
 
 import eventlet
+from eventlet.green import subprocess
+
+from keystone.common import cms
+
 eventlet.monkey_patch(os=False)
+cms.Popen = subprocess.Popen
 
 import os
 import sys
